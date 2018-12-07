@@ -1,0 +1,10 @@
+(lp1
+S'<blank>'
+p2
+aS'<unk>'
+p3
+aS'<s>'
+p4
+aS'</s>'
+p5
+a.
