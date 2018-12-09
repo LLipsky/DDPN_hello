@@ -1,0 +1,6 @@
+{
+  "test_engine.py::test_net": true,
+  "test_engine.py::test_net_recall": true,
+  "test_engine.py::test_net_rpn": true,
+  "test_net.py::test_net": true
+}
