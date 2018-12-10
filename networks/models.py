@@ -64,29 +64,30 @@ class Net(nn.Module):
         query_score_pred = query_score_fc.view(-1, cfg.RPN_TOPN)
 
         # KLD loss  have backward,predict score
-        if cfg.USE_KLD:
-            #softmaxKldLoss
-            query_score_pred = F.log_softmax(query_score_pred)
-            criterion = nn.KLDivLoss()
-            loss_query_score = criterion(query_score_pred, query_label)  # query_label_mask function????
-
-        else:
-            #softmax and normal loss
-            query_score_pred = F.log_softmax(query_score_pred)
-            criterion = nn.MSELoss()
-            loss_query_score = criterion(query_score_pred, query_label)
-
-
-        # predict bbox
+        # if cfg.USE_KLD:
+        #     #softmaxKldLoss
+        #     query_score_pred = F.log_softmax(query_score_pred)
+        #     criterion = nn.KLDivLoss()
+        #     loss_query_score = criterion(query_score_pred, query_label)  # query_label_mask function????
+        #
+        # else:
+        #     #softmax and normal loss
+        #     query_score_pred = F.log_softmax(query_score_pred)
+        #     criterion = nn.MSELoss()
+        #     loss_query_score = criterion(query_score_pred, query_label)
+        #
+        #
+        # # predict bbox
         query_bbox_pred1 = nn.Linear(out_features=4)
         query_bbox_pred = query_bbox_pred1(qv_relu)
+        #
+        # if cfg.USE_REG:
+        #     loss_query_bbox = F.smooth_l1_loss(query_bbox_pred, query_bbox_targets)  # inside_weights and outside_weights function?????
+        # else:
+        #     print("not use regression bbox loss")
 
-        if cfg.USE_REG:
-            loss_query_bbox = F.smooth_l1_loss(query_bbox_pred, query_bbox_targets)  # inside_weights and outside_weights function?????
-        else:
-            print("not use regression bbox loss")
-
-        return loss_query_score, loss_query_bbox
+        # return loss_query_score, loss_query_bbox
+        return query_score_pred, query_label, query_bbox_pred, query_bbox_targets
 
     def proc_image(self, img_feat_layer, spt_feat_layer):
 

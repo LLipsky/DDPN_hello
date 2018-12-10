@@ -8,6 +8,9 @@ from networks.models import Net
 from train_engine import train_net
 import pprint
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
 def parse_args():
     """
     Parse input arguments
@@ -38,6 +41,50 @@ def parse_args():
 
     opts = parser.parse_args()
     return opts
+
+def get_vocab_size():
+    qdic_dir = cfg.QUERY_DIR  # osp.join(cfg.DATA_DIR, cfg.IMDB_NAME, 'query_dict')
+    qdic = Dictionary(qdic_dir)
+    qdic.load()
+    vocab_size = qdic.size()
+    return vocab_size
+
+def adjust_learning_rate(optimizer,decay_rate):
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = param_group['lr'] * decay_rate
+
+MAX_ITERATIONS = 48
+
+def train():
+    train_loss = np.zeros(MAX_ITERATIONS + 1)
+    opts = parse_args()
+    net = Net(opts.train_split, get_vocab_size(), opts)
+    query_score_pred, query_label, query_bbox_pred, query_bbox_targets = net()
+    optimizer = optim.SGD(net.parameters(), lr=0.01)
+    # KLD loss  have backward,predict score
+    if cfg.USE_KLD:
+        optimizer.zero_grad()
+        #softmaxKldLoss
+        query_score_pred = F.log_softmax(query_score_pred)
+        criterion = nn.KLDivLoss(size_average=False)
+        loss_query_score = criterion(query_score_pred, query_label)  # query_label_mask function????
+        print(loss_query_score)
+        loss_query_score.backward()
+        optimizer.step()
+
+
+
+    else:
+        #softmax and normal loss
+        query_score_pred = F.log_softmax(query_score_pred)
+        criterion = nn.MSELoss()
+        loss_query_score = criterion(query_score_pred, query_label)
+
+
+    # # predict bbox
+
+
+
 
 if __name__ == '__main__':
     opts = parse_args()
