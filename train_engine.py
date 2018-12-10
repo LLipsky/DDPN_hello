@@ -1,4 +1,4 @@
-import caffe
+# import caffe
 from config.base_config import cfg, get_models_dir
 from utils.timer import Timer
 import numpy as np
@@ -27,7 +27,9 @@ class SolverWrapper(object):
     use to unnormalize the learned bounding-box regression weights.
     """
 
-    def __init__(self, solver_path, opts):
+    def __init__(self, opts, network):
+        self.net = network  # My add
+
         self.opts = opts
         self.models_dir = get_models_dir()
         self.pretrained_model = opts.pretrained_model
@@ -38,11 +40,12 @@ class SolverWrapper(object):
         self.logger = Logger(cfg.IMDB_NAME, cfg.FEAT_TYPE, cfg.PROJ_NAME, cfg.LOG_DIR)
 
         self.niter = 0
+
         # self.solver = caffe.SGDSolver(solver_path)
-        self.solver = caffe.get_solver(solver_path)
+        # self.solver = caffe.get_solver(solver_path)
+
         if self.pretrained_model is not None and osp.exists(self.pretrained_model):
-            print('Loading pretrained model '
-                  'weights from {:s}').format(self.pretrained_model)
+            print(('Loading pretrained model ''weights from {:s}').format(self.pretrained_model))
             self.solver.net.copy_from(self.pretrained_model)
             modelname = self.pretrained_model.split('/')[-1]
             niter = iter_reg.search(modelname).group(1)
@@ -59,16 +62,23 @@ class SolverWrapper(object):
             self.query_means, self.query_stds = add_bbox_regression_targets()
             print('done')
             found = False
-            for k in self.solver.net.params.keys():
+
+            # for k in self.solver.net.params.keys():
+            for k in self.net.params.keys():
                 if self.bbox_pred_layer_name in k:
                     bbox_pred = k
                     found = True
                     print('[#] Renormalizing the final layers back')
-                    self.solver.net.params[bbox_pred][0].data[...] = \
+                    '''self.solver.net.params[bbox_pred][0].data[...] = \
                         (self.solver.net.params[bbox_pred][0].data *
                          1.0 / self.query_stds[:, np.newaxis])
                     self.solver.net.params[bbox_pred][1].data[...] = \
-                        (self.solver.net.params[bbox_pred][1].data - self.query_means) * 1.0 / self.query_stds
+                        (self.solver.net.params[bbox_pred][1].data - self.query_means) * 1.0 / self.query_stds'''
+                    self.net.params[bbox_pred][0].data[...] = \
+                        (self.net.params[bbox_pred][0].data *
+                         1.0 / self.query_stds[:, np.newaxis])
+                    self.net.params[bbox_pred][1].data[...] = \
+                        (self.net.params[bbox_pred][1].data - self.query_means) * 1.0 / self.query_stds
             if not found:
                 print('Warning layer \"bbox_pred\" not found')
 
@@ -77,7 +87,8 @@ class SolverWrapper(object):
         """Take a snapshot of the network after unnormalizing the learned
         bounding-box regression weights. This enables easy use at test-time.
         """
-        net = self.solver.net
+        # net = self.solver.net
+        net = self.net
 
         if cfg.USE_REG:
             # # save original values
@@ -134,7 +145,7 @@ class SolverWrapper(object):
         while self.niter < max_iters:
             # Make one SGD update
             timer.tic()
-            self.solver.step(1)
+            # self.solver.step(1)
             self.niter += 1
             timer.toc()
             if self.niter % (10 * cfg.TRAIN.DISPLAY) == 0:
@@ -156,9 +167,9 @@ class SolverWrapper(object):
             model_paths.append(self.snapshot())
 
 
-def train_net(solver_path, opts):
+def train_net(opts, net):
     """Train a Fast R-CNN network."""
-    sw = SolverWrapper(solver_path, opts)
+    sw = SolverWrapper(opts, net)
 
     print('Solving...')
     sw.train_model(cfg.TRAIN.MAX_ITERS)
