@@ -55,11 +55,9 @@ class SolverWrapper(object):
 
         if cfg.USE_REG:
             self.bbox_pred_layer_name = 'query_bbox_pred'
-            print
-            'Computing bounding-box regression targets...'
+            print('Computing bounding-box regression targets...')
             self.query_means, self.query_stds = add_bbox_regression_targets()
-            print
-            'done'
+            print('done')
             found = False
             for k in self.solver.net.params.keys():
                 if self.bbox_pred_layer_name in k:

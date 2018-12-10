@@ -6,6 +6,7 @@ from config.base_config import cfg
 import torch.nn.functional as F
 class Net(nn.Module):
     def __int__(self, split, vocab_size, opts):
+        super(Net, self).__init__()
         self.split = split
         self.vocab_size = vocab_size
         self.param_str = json.dumps({'split': self.split, 'batchsize': cfg.BATCHSIZE})
@@ -22,16 +23,8 @@ class Net(nn.Module):
         param_str = json.dumps({'split': self.split, 'batchsize': cfg.BATCHSIZE})
         top = []
         dataProviderLayer = DataProviderLayer(top, param_str)
-        top = dataProviderLayer()
-
-        qvec = top[0]
-        img_feat = top[2]
-        spt_feat = top[3]
-        query_label = top[4]
-        query_label_mask = top[5]
-        query_bbox_targets = top[6]
-        query_bbox_inside_weights = top[7]
-        query_bbox_outside_weights = top[8]
+        qvec, img_feat, spt_feat, query_label, query_label_mask, query_bbox_targets, query_bbox_inside_weights, query_bbox_outside_weights\
+            = dataProviderLayer()
 
         # Word Embed
         embed_ba = self.embedding(qvec)  # qvec :one hot vector input;output_num(embed_ba):300
@@ -81,7 +74,7 @@ class Net(nn.Module):
             #softmax and normal loss
             query_score_pred = F.log_softmax(query_score_pred)
             criterion = nn.MSELoss()
-            loss_query_score = criterion(query_score_pred,query_label)
+            loss_query_score = criterion(query_score_pred, query_label)
 
 
         # predict bbox

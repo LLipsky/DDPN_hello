@@ -6,6 +6,7 @@ import numpy as np
 from utils.dictionary import Dictionary
 from networks.models import Net
 from train_engine import train_net
+import pprint
 def parse_args():
     """
     Parse input arguments
@@ -26,7 +27,7 @@ def parse_args():
         '--cfg',
         dest='cfg_file',
         help='optional config file',
-        #default='config/experiments/refcoco-kld-bbox_reg.yaml',
+        default='config/experiments/refcoco-kld-bbox_reg.yaml',
         type=str
     )
 
@@ -39,15 +40,16 @@ def parse_args():
 
 if __name__ == '__main__':
     opts = parse_args()
-    # print('Called with options:')
-    # print(opts)
+    print('Called with options:')
+    print(opts)
 
-    # print('Using config:')
-    # pprint.pprint(cfg)
     if opts.cfg_file is not None:
         cfg_from_file(opts.cfg_file)
-    # cfg.IMDB_NAME = opts.imdb_name
+    cfg.IMDB_NAME = opts.imdb_name
     print_cfg()
+
+    print('Using config:')
+    pprint.pprint(cfg)
 
     # train_net_path = osp.join(get_models_dir(), 'train.prototxt')
     # val_net_path = osp.join(get_models_dir(), 'val.prototxt')

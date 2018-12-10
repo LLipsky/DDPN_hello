@@ -96,7 +96,7 @@ class DataProviderLayer(nn.Module):
         top[8].reshape(*query_bbox_outside_weights.shape)
         top[8].data[...] = query_bbox_outside_weights
 
-        return top
+        return top[0], top[2], top[3], top[4], top[5], top[6], top[7], top[8]
 
     def backward(self, top, propagate_down, bottom):
         pass

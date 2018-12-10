@@ -3,7 +3,8 @@
 from test_engine import test_net
 from config.base_config import cfg, print_cfg, get_models_dir, cfg_from_file
 import caffe
-from networks import models
+# from networks import models
+from networks.models import Net
 import argparse
 import pprint
 import time, os, sys
@@ -21,11 +22,8 @@ def parse_args():
     parser.add_argument('--test_split', help='test_split', default='val', type=str)
     parser.add_argument('--batchsize', help='batchsize', default=64, type=int)
     parser.add_argument('--vis_pred', help='visualize prediction', default=False, type=bool)
-    parser.add_argument('--test_net', help='test_net prototxt',
-                        default=None,
-                        type=str)
-    parser.add_argument('--pretrained_model', help='pretrained_model',
-                        type=str)
+    parser.add_argument('--test_net', help='Net', default=None, type=str)
+    parser.add_argument('--pretrained_model', help='pretrained_model', type=str)
     parser.add_argument(
         '--cfg',
         dest='cfg_file',
@@ -40,7 +38,6 @@ def parse_args():
 
     opts = parser.parse_args()
     return opts
-
 
 if __name__ == '__main__':
     opts = parse_args()
@@ -57,7 +54,10 @@ if __name__ == '__main__':
         qdic = Dictionary(qdic_dir)
         qdic.load()
         vocab_size = qdic.size()
-        test_model = models.net(opts.test_split, vocab_size, opts)
+
+        test_model = Net(opts.test_split, vocab_size, opts)
+
+
         test_net_path = osp.join(get_models_dir(), 'test.prototxt')
         with open(test_net_path, 'w') as f:
             f.write(str(test_model))
